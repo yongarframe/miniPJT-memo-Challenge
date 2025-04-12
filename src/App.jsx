@@ -2,28 +2,178 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 function App() {
-  const [todo, setTodo] = useState([
-    {
-      id: Number(new Date()),
-      content: "안녕하세요",
-    },
-  ]);
+  const [isLoading, data] = useFetch("http://localhost:3000/todo");
+  const [todo, setTodo] = useState([]);
+  const [currentTodo, setCurrentTodo] = useState(null);
+  const [time, setTime] = useState(0);
+  const [isTimer, setIsTimer] = useState(false);
 
+  useEffect(() => {
+    if (currentTodo) {
+      fetch(`http://localhost:3000/todo/${currentTodo}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          time: todo.find((el) => el.id === currentTodo).time + 1,
+        }),
+      })
+        .then((res) => res.json())
+        .then((res) =>
+          setTodo((prev) =>
+            prev.map((el) => (el.id === currentTodo ? res : el))
+          )
+        );
+    }
+  }, [time]);
+
+  useEffect(() => {
+    setTime(0);
+  }, [isTimer]);
+
+  useEffect(() => {
+    if (data) setTodo(data);
+  }, [isLoading]);
   return (
     <>
       <Clock />
-      <StopWatch />
-      <Timer />
+      <button onClick={() => setIsTimer((prev) => !prev)}>
+        {isTimer ? "스톱워치로변경" : "타이머로변경"}
+      </button>
+      {isTimer ? (
+        <Timer time={time} setTime={setTime} />
+      ) : (
+        <StopWatch time={time} setTime={setTime} />
+      )}
+      <Advice />
       <TodoInput setTodo={setTodo} todo={todo} />
-      <TodoList todo={todo} setTodo={setTodo} />
+      <TodoList
+        todo={todo}
+        setTodo={setTodo}
+        setCurrentTodo={setCurrentTodo}
+        currentTodo={currentTodo}
+      />
     </>
   );
 }
 
-function Timer() {
+function TodoInput({ setTodo }) {
+  const inputRef = useRef(null);
+  const addTodo = () => {
+    const newTodo = {
+      // id: Number(new Date()),
+      content: inputRef.current.value,
+      time: 0,
+    };
+    fetch("http://localhost:3000/todo", {
+      method: "POST",
+      body: JSON.stringify(newTodo),
+    })
+      .then((res) => res.json())
+      .then((res) => setTodo((prev) => [...prev, res]));
+  };
+
+  return (
+    <>
+      <div className="flex gap-2 items-center">
+        <input
+          className="w-100 min-h-14 border-1 shadow-xl border-sky-500 rounded-xl pl-2 font-sans"
+          ref={inputRef}
+        />
+        <button
+          className="text-yellow-50 w-10 h-8 bg-green-400 rounded-md"
+          onClick={addTodo}
+        >
+          추가
+        </button>
+      </div>
+    </>
+  );
+}
+
+export default App;
+
+function TodoList({ todo, setTodo, setCurrentTodo, currentTodo }) {
+  return (
+    <ul className="flex flex-col gap-2 mt-2 bg-pink-200 rounded-xl">
+      {todo.map((el) => (
+        <Todo
+          key={el.id}
+          todo={el}
+          setTodo={setTodo}
+          setCurrentTodo={setCurrentTodo}
+          currentTodo={currentTodo}
+        />
+      ))}
+    </ul>
+  );
+}
+
+function Todo({ todo, setTodo, setCurrentTodo, currentTodo }) {
+  return (
+    <li
+      className={`text-yellow-50 w-100 flex items-center justify-end gap-1  rounded-xl ${
+        currentTodo === todo.id ? "bg-amber-700" : "bg-blue-400"
+      }`}
+    >
+      <div>
+        {todo.content}
+        <br />
+        {formatTime(todo.time)}
+      </div>
+      <button onClick={() => setCurrentTodo(todo.id)}>시작하기</button>
+      <button
+        className="text-yellow-50 w-10 h-8 bg-red-400 rounded-md ml-10"
+        onClick={() => {
+          fetch(`http://localhost:3000/todo/${todo.id}`, {
+            method: "DELETE",
+          }).then((res) => {
+            if (res.ok) {
+              setTodo((prev) => prev.filter((el) => el.id !== todo.id));
+            }
+          });
+        }}
+      >
+        삭제
+      </button>
+    </li>
+  );
+}
+
+function useFetch(url) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch(url)
+      .then((res) => res.json())
+      .then((res) => {
+        setData(res);
+        setIsLoading(false);
+      });
+  }, [url]);
+
+  return [isLoading, data];
+}
+
+function Advice() {
+  const [isLoading, data] = useFetch(
+    "https://korean-advice-open-api.vercel.app/api/advice"
+  );
+
+  return (
+    <>
+      {!isLoading && (
+        <>
+          <div>{data.message}</div>
+          <div>-{data.author}-</div>
+        </>
+      )}
+    </>
+  );
+}
+
+function Timer({ time, setTime }) {
   const [startTime, setStartTime] = useState(0);
   const [isOn, setIsOn] = useState(false);
-  const [time, setTime] = useState(0);
 
   const timerRef = useRef(null);
 
@@ -93,8 +243,7 @@ function formatTime(second) {
   return timeString;
 }
 
-function StopWatch() {
-  const [time, setTime] = useState(0);
+function StopWatch({ time, setTime }) {
   const [isOn, setIsOn] = useState(false);
   const timerRef = useRef(null);
 
@@ -141,60 +290,4 @@ function Clock() {
   }, []);
 
   return <div>{time.toLocaleTimeString()}</div>;
-}
-
-function TodoInput({ setTodo }) {
-  const inputRef = useRef(null);
-  const addTodo = () => {
-    const newTodo = {
-      id: Number(new Date()),
-      content: inputRef.current.value,
-    };
-    setTodo((prev) => [...prev, newTodo]);
-  };
-
-  return (
-    <>
-      <div className="flex gap-2 items-center">
-        <input
-          className="w-100 min-h-14 border-1 shadow-xl border-sky-500 rounded-xl pl-2 font-sans"
-          ref={inputRef}
-        />
-        <button
-          className="text-yellow-50 w-10 h-8 bg-green-400 rounded-md"
-          onClick={addTodo}
-        >
-          추가
-        </button>
-      </div>
-    </>
-  );
-}
-
-export default App;
-
-function TodoList({ todo, setTodo }) {
-  return (
-    <ul className="flex flex-col gap-2 mt-2 bg-pink-200 rounded-xl">
-      {todo.map((el) => (
-        <Todo key={el.id} todo={el} setTodo={setTodo} />
-      ))}
-    </ul>
-  );
-}
-
-function Todo({ todo, setTodo }) {
-  return (
-    <li className="text-yellow-50 w-100 flex items-center justify-end gap-1 bg-blue-400 rounded-xl">
-      {todo.content}
-      <button
-        className="text-yellow-50 w-10 h-8 bg-red-400 rounded-md ml-10"
-        onClick={() => {
-          setTodo((prev) => prev.filter((el) => el.id !== todo.id));
-        }}
-      >
-        삭제
-      </button>
-    </li>
-  );
 }
