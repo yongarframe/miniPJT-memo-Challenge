@@ -1,5 +1,45 @@
-@import "tailwindcss";
-
 button {
-  @apply text-yellow-50 w-25 h-8 bg-green-400 rounded-md;
+  height: 30px;
+  border: 0px solid black;
+  border-radius: 10px;
+}
+#root {
+  justify-content: center;
+}
+
+.flex {
+  display: flex;
+}
+
+li {
+  list-style-type: none;
+}
+
+.container {
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.timer {
+  align-items: center;
+  gap: 20px;
+}
+
+.todo {
+  gap: 20px;
+  background-color: rgb(213, 134, 134);
+  align-items: center;
+  border-radius: 10px;
+  width: 300px;
+  justify-content: right;
+  padding-right: 10px;
+}
+.todoList {
+  flex-direction: column;
+  gap: 20px;
+}
+
+.todo.current {
+  background-color: black;
+  color: wheat;
 }
