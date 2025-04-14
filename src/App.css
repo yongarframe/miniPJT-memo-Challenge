@@ -63,3 +63,6 @@ li {
   height: 100%;
   backdrop-filter: blur(5px);
 }
+.done {
+  text-decoration: line-through;
+}

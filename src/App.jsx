@@ -18,6 +18,31 @@ function App() {
   const [isModal, setIsModal] = useState(false);
   const [currentInput, setCurrentInput] = useState("");
   const [state, dispatch] = useReducer(todoReducer, []);
+  const dragItem = useRef();
+  const dragOverItem = useRef();
+
+  // 드래그 앤 드랍 기능
+  // 드래그 시작
+  const dragStart = (e, position) => {
+    dragItem.current = position;
+  };
+
+  //드래그 오버
+  const dragEnter = (e, position) => {
+    dragOverItem.current = position;
+  };
+
+  //드래그 드랍시
+  const drop = () => {
+    const newList = [...state];
+    const dragItemValue = newList[dragItem.current];
+    newList.splice(dragItem.current, 1);
+    newList.splice(dragOverItem.current, 0, dragItemValue);
+    dragItem.current = null;
+    dragOverItem.current = null;
+    // setTodoList(newList);
+    dispatch({ type: "GET_DATA", payload: newList });
+  };
 
   useEffect(() => {
     if (currentTodo) {
@@ -95,6 +120,9 @@ function App() {
         currentTodo={currentTodo}
         setIsModal={setIsModal}
         setCurrentInput={setCurrentInput}
+        dragStart={dragStart} // drag&drop props 전달
+        dragEnter={dragEnter} // drag&drop props 전달
+        drop={drop} // drag&drop props 전달
       />
       {isModal && (
         <div className="blurContainer">
@@ -151,10 +179,13 @@ function TodoList({
   currentTodo,
   setIsModal,
   setCurrentInput,
+  dragStart,
+  dragEnter,
+  drop,
 }) {
   return (
     <ul className="todoList flex">
-      {state.map((el) => (
+      {state.map((el, idx) => (
         <Todo
           key={el.id}
           state={el}
@@ -163,6 +194,10 @@ function TodoList({
           currentTodo={currentTodo}
           setIsModal={setIsModal}
           setCurrentInput={setCurrentInput}
+          dragStart={dragStart} // drag&drop props 전달
+          dragEnter={dragEnter} // drag&drop props 전달
+          drop={drop} // drag&drop props 전달
+          idx={idx}
         />
       ))}
     </ul>
@@ -176,12 +211,25 @@ function Todo({
   currentTodo,
   setIsModal,
   setCurrentInput,
+  dragStart,
+  dragEnter,
+  drop,
+  idx,
 }) {
   // console.log(typeof state.id);
   const [listChecked, setListChecked] = useState(state.completed);
 
   return (
-    <li className={`flex todo ${currentTodo === state.id ? "current" : ""}`}>
+    <li
+      className={`flex todo ${currentTodo === state.id ? "current" : ""} ${
+        state.completed ? "done" : ""
+      }`}
+      draggable
+      onDragStart={(e) => dragStart(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
+      onDragEnter={(e) => dragEnter(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
+      onDragEnd={drop} // drag&drop props 이벤트 App 컴포넌트에서 실행
+      onDragOver={(e) => e.preventDefault()} // drag&drop props 이벤트 App 컴포넌트에서 실행
+    >
       <input
         type="checkbox"
         checked={listChecked}
