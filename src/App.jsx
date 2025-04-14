@@ -6,13 +6,17 @@ import { Timer } from "./Timer";
 import { formatTime } from "./formatTime";
 import { StopWatch } from "./StopWatch";
 import { Advice } from "./Advice";
+import { UpdateModal } from "./UpdateModal";
 
+//타이머도 언마운트 되었을 때 useEffect interval 함수 제거 추가
 function App() {
   const [isLoading, data] = useFetch("http://localhost:3000/todo");
   const [todo, setTodo] = useState([]);
   const [currentTodo, setCurrentTodo] = useState(null);
   const [time, setTime] = useState(0);
   const [isTimer, setIsTimer] = useState(false);
+  const [isModal, setIsModal] = useState(false);
+  const [currentInput, setCurrentInput] = useState("");
 
   useEffect(() => {
     if (currentTodo) {
@@ -29,6 +33,7 @@ function App() {
           )
         );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [time]);
 
   useEffect(() => {
@@ -37,6 +42,7 @@ function App() {
 
   useEffect(() => {
     if (data) setTodo(data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
 
   return (
@@ -54,12 +60,30 @@ function App() {
       </div>
       <Advice />
       <TodoInput setTodo={setTodo} todo={todo} />
+      <div className="todofilter flex">
+        <button>완료목록</button>
+        <button>미완료목록</button>
+        <button>All</button>
+      </div>
       <TodoList
         todo={todo}
         setTodo={setTodo}
         setCurrentTodo={setCurrentTodo}
         currentTodo={currentTodo}
+        setIsModal={setIsModal}
+        setCurrentInput={setCurrentInput}
       />
+      {isModal && (
+        <div className="blurContainer">
+          <UpdateModal
+            setIsModal={setIsModal}
+            currentInput={currentInput}
+            setCurrentInput={setCurrentInput}
+            todo={todo}
+            setTodo={setTodo}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -95,7 +119,14 @@ function TodoInput({ setTodo }) {
 
 export default App;
 
-function TodoList({ todo, setTodo, setCurrentTodo, currentTodo }) {
+function TodoList({
+  todo,
+  setTodo,
+  setCurrentTodo,
+  currentTodo,
+  setIsModal,
+  setCurrentInput,
+}) {
   return (
     <ul className="todoList flex">
       {todo.map((el) => (
@@ -105,13 +136,22 @@ function TodoList({ todo, setTodo, setCurrentTodo, currentTodo }) {
           setTodo={setTodo}
           setCurrentTodo={setCurrentTodo}
           currentTodo={currentTodo}
+          setIsModal={setIsModal}
+          setCurrentInput={setCurrentInput}
         />
       ))}
     </ul>
   );
 }
 
-function Todo({ todo, setTodo, setCurrentTodo, currentTodo }) {
+function Todo({
+  todo,
+  setTodo,
+  setCurrentTodo,
+  currentTodo,
+  setIsModal,
+  setCurrentInput,
+}) {
   return (
     <li className={`flex todo ${currentTodo === todo.id ? "current" : ""}`}>
       <div>
@@ -120,6 +160,14 @@ function Todo({ todo, setTodo, setCurrentTodo, currentTodo }) {
         {formatTime(todo.time)}
       </div>
       <button onClick={() => setCurrentTodo(todo.id)}>시작하기</button>
+      <button
+        onClick={() => {
+          setIsModal((prev) => !prev);
+          setCurrentInput([todo.id, todo.content]);
+        }}
+      >
+        수정
+      </button>
       <button
         className=""
         onClick={() => {
