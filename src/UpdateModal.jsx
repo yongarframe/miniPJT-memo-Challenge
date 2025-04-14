@@ -2,8 +2,8 @@ export function UpdateModal({
   setIsModal,
   currentInput,
   setCurrentInput,
-  todo,
-  setTodo,
+  state,
+  dispatch,
 }) {
   return (
     <div className="modal">
@@ -15,20 +15,21 @@ export function UpdateModal({
       <button
         onClick={() => {
           setIsModal((prev) => !prev);
-          const currentTodo = todo.filter((el) => el.id === currentInput[0]);
+          const currentTodo = state.filter((el) => el.id === currentInput[0]);
           const newTodo = { ...currentTodo, content: currentInput[1] };
           fetch(`http://localhost:3000/todo/${currentInput[0]}`, {
             method: "PATCH",
             body: JSON.stringify(newTodo),
           }).then((res) => {
             if (res.ok) {
-              setTodo(
-                todo.map((el) =>
-                  el.id === currentInput[0]
-                    ? { ...el, content: currentInput[1] }
-                    : el
-                )
-              );
+              dispatch({ type: "CORRECT_INPUT", payload: currentInput });
+              // setTodo(
+              //   todo.map((el) =>
+              //     el.id === currentInput[0]
+              //       ? { ...el, content: currentInput[1] }
+              //       : el
+              //   )
+              // );
             }
           });
         }}

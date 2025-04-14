@@ -7,7 +7,7 @@ export function Clock() {
     setInterval(() => {
       setTime(new Date());
     }, 1000);
-  }, []); // 빈배열 때문에 1번만 렌더링 됨
+  }, []);
 
   return <div>{time.toLocaleTimeString()}</div>;
 }

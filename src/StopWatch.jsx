@@ -15,6 +15,7 @@ export function StopWatch({ time, setTime }) {
       clearInterval(timerRef.current);
     }
     return () => clearInterval(timerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOn]);
 
   return (

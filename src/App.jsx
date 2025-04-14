@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import "./App.css";
 import { Clock } from "./Clcok";
 import { useFetch } from "./customHook";
@@ -7,31 +7,33 @@ import { formatTime } from "./formatTime";
 import { StopWatch } from "./StopWatch";
 import { Advice } from "./Advice";
 import { UpdateModal } from "./UpdateModal";
+import { todoReducer } from "./todoReducer";
 
-//타이머도 언마운트 되었을 때 useEffect interval 함수 제거 추가
 function App() {
   const [isLoading, data] = useFetch("http://localhost:3000/todo");
-  const [todo, setTodo] = useState([]);
+  // const [todo, setTodo] = useState([]);
   const [currentTodo, setCurrentTodo] = useState(null);
   const [time, setTime] = useState(0);
   const [isTimer, setIsTimer] = useState(false);
   const [isModal, setIsModal] = useState(false);
   const [currentInput, setCurrentInput] = useState("");
+  const [state, dispatch] = useReducer(todoReducer, []);
 
   useEffect(() => {
     if (currentTodo) {
       fetch(`http://localhost:3000/todo/${currentTodo}`, {
         method: "PATCH",
         body: JSON.stringify({
-          time: todo.find((el) => el.id === currentTodo).time + 1,
+          time: state.find((el) => el.id === currentTodo).time + 1,
         }),
       })
         .then((res) => res.json())
-        .then((res) =>
-          setTodo((prev) =>
-            prev.map((el) => (el.id === currentTodo ? res : el))
-          )
-        );
+        .then(
+          (res) => dispatch({ type: "TIME_STAMP", payload: [res, currentTodo] })
+          // setTodo((prev) =>
+          //   prev.map((el) => (el.id === currentTodo ? res : el))
+          // )
+        ); //
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [time]);
@@ -41,7 +43,8 @@ function App() {
   }, [isTimer]);
 
   useEffect(() => {
-    if (data) setTodo(data);
+    if (data) dispatch({ type: "GET_DATA", payload: data });
+    //setTodo(data);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
 
@@ -59,15 +62,15 @@ function App() {
         )}
       </div>
       <Advice />
-      <TodoInput setTodo={setTodo} todo={todo} />
+      <TodoInput state={state} dispatch={dispatch} />
       <div className="todofilter flex">
         <button>완료목록</button>
         <button>미완료목록</button>
         <button>All</button>
       </div>
       <TodoList
-        todo={todo}
-        setTodo={setTodo}
+        state={state}
+        dispatch={dispatch}
         setCurrentTodo={setCurrentTodo}
         currentTodo={currentTodo}
         setIsModal={setIsModal}
@@ -79,8 +82,8 @@ function App() {
             setIsModal={setIsModal}
             currentInput={currentInput}
             setCurrentInput={setCurrentInput}
-            todo={todo}
-            setTodo={setTodo}
+            state={state}
+            dispatch={dispatch}
           />
         </div>
       )}
@@ -88,20 +91,24 @@ function App() {
   );
 }
 
-function TodoInput({ setTodo }) {
+export default App;
+
+function TodoInput({ dispatch }) {
   const inputRef = useRef(null);
   const addTodo = () => {
     const newTodo = {
-      // id: Number(new Date()),
+      // id: Number(new Date()).toString(),
       content: inputRef.current.value,
       time: 0,
+      competed: false,
     };
     fetch("http://localhost:3000/todo", {
       method: "POST",
       body: JSON.stringify(newTodo),
     })
       .then((res) => res.json())
-      .then((res) => setTodo((prev) => [...prev, res]))
+      .then((res) => dispatch({ type: "ADD_TODO", payload: res }))
+      // .then((res) => setTodo((prev) => [...prev, res]))
       .then(() => (inputRef.current.value = ""));
   };
 
@@ -117,11 +124,9 @@ function TodoInput({ setTodo }) {
   );
 }
 
-export default App;
-
 function TodoList({
-  todo,
-  setTodo,
+  state,
+  dispatch,
   setCurrentTodo,
   currentTodo,
   setIsModal,
@@ -129,11 +134,11 @@ function TodoList({
 }) {
   return (
     <ul className="todoList flex">
-      {todo.map((el) => (
+      {state.map((el) => (
         <Todo
           key={el.id}
-          todo={el}
-          setTodo={setTodo}
+          state={el}
+          dispatch={dispatch}
           setCurrentTodo={setCurrentTodo}
           currentTodo={currentTodo}
           setIsModal={setIsModal}
@@ -145,25 +150,26 @@ function TodoList({
 }
 
 function Todo({
-  todo,
-  setTodo,
+  state,
+  dispatch,
   setCurrentTodo,
   currentTodo,
   setIsModal,
   setCurrentInput,
 }) {
+  // console.log(typeof state.id);
   return (
-    <li className={`flex todo ${currentTodo === todo.id ? "current" : ""}`}>
+    <li className={`flex todo ${currentTodo === state.id ? "current" : ""}`}>
       <div>
-        {todo.content}
+        {state.content}
         <br />
-        {formatTime(todo.time)}
+        {formatTime(state.time)}
       </div>
-      <button onClick={() => setCurrentTodo(todo.id)}>시작하기</button>
+      <button onClick={() => setCurrentTodo(state.id)}>시작하기</button>
       <button
         onClick={() => {
           setIsModal((prev) => !prev);
-          setCurrentInput([todo.id, todo.content]);
+          setCurrentInput([state.id, state.content]);
         }}
       >
         수정
@@ -171,11 +177,13 @@ function Todo({
       <button
         className=""
         onClick={() => {
-          fetch(`http://localhost:3000/todo/${todo.id}`, {
+          fetch(`http://localhost:3000/todo/${state.id}`, {
             method: "DELETE",
           }).then((res) => {
             if (res.ok) {
-              setTodo((prev) => prev.filter((el) => el.id !== todo.id));
+              // console.log(res);
+              // setTodo((prev) => prev.filter((el) => el.id !== state.id));
+              dispatch({ type: "DELETE_TODO", payload: state });
             }
           });
         }}

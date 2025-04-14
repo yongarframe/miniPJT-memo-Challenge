@@ -17,6 +17,7 @@ export function Timer({ time, setTime }) {
       clearInterval(timerRef.current);
     }
     return () => clearInterval(timerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOn, time]);
 
   //time 이 있을 때는 startTime 표시 없을 때는 time 표시

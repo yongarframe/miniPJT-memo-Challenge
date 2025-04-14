@@ -1,24 +1,16 @@
 {
   "todo": [
     {
-      "0": {
-        "id": "c416",
-        "content": "1234124",
-        "time": 0
-      },
-      "id": "c416",
-      "content": "12341243123",
-      "time": 0
+      "id": "3a5c",
+      "content": "123142",
+      "time": 0,
+      "competed": false
     },
     {
-      "0": {
-        "id": "5638",
-        "content": "124124",
-        "time": 0
-      },
-      "id": "5638",
-      "content": "1241243412",
-      "time": 0
+      "id": "b720",
+      "content": "124124",
+      "time": 0,
+      "competed": false
     }
   ]
 }
