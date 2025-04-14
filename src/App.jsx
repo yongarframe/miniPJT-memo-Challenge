@@ -64,9 +64,29 @@ function App() {
       <Advice />
       <TodoInput state={state} dispatch={dispatch} />
       <div className="todofilter flex">
-        <button>완료목록</button>
-        <button>미완료목록</button>
-        <button>All</button>
+        <button
+          onClick={() => {
+            dispatch({ type: "GET_DATA", payload: data });
+            dispatch({ type: "FILTER_DONE" });
+          }}
+        >
+          완료목록
+        </button>
+        <button
+          onClick={() => {
+            dispatch({ type: "GET_DATA", payload: data });
+            dispatch({ type: "FILTER_UNDONE" });
+          }}
+        >
+          미완료목록
+        </button>
+        <button
+          onClick={() => {
+            dispatch({ type: "GET_DATA", payload: data });
+          }}
+        >
+          All
+        </button>
       </div>
       <TodoList
         state={state}
@@ -100,7 +120,7 @@ function TodoInput({ dispatch }) {
       // id: Number(new Date()).toString(),
       content: inputRef.current.value,
       time: 0,
-      competed: false,
+      completed: false,
     };
     fetch("http://localhost:3000/todo", {
       method: "POST",
@@ -158,8 +178,31 @@ function Todo({
   setCurrentInput,
 }) {
   // console.log(typeof state.id);
+  const [listChecked, setListChecked] = useState(state.completed);
+
   return (
     <li className={`flex todo ${currentTodo === state.id ? "current" : ""}`}>
+      <input
+        type="checkbox"
+        checked={listChecked}
+        onChange={() => {
+          const newCheck = !listChecked;
+          setListChecked(newCheck);
+          const newTodo = { ...state, completed: newCheck };
+          // console.log(newTodo);
+          fetch(`http://localhost:3000/todo/${state.id}`, {
+            method: "PATCH",
+            body: JSON.stringify(newTodo),
+          }).then((res) => {
+            if (res.ok) {
+              dispatch({
+                type: "TODO_COMPLETE",
+                payload: [state, newCheck],
+              });
+            }
+          });
+        }}
+      />
       <div>
         {state.content}
         <br />

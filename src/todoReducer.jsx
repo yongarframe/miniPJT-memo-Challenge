@@ -17,6 +17,17 @@ export const todoReducer = (state, action) => {
       return state.map((el) =>
         el.id === action.payload[0] ? { ...el, content: action.payload[1] } : el
       );
+    case "TODO_COMPLETE":
+      return state.map((el) =>
+        el.id === action.payload[0].id
+          ? { ...el, completed: action.payload[1] }
+          : el
+      );
+    case "FILTER_DONE":
+      return [...state].filter((el) => el.completed === true);
+
+    case "FILTER_UNDONE":
+      return [...state].filter((el) => el.completed !== true);
 
     default:
       return state;
