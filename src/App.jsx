@@ -10,7 +10,7 @@ import { UpdateModal } from "./UpdateModal";
 import { todoReducer } from "./todoReducer";
 
 function App() {
-  const [isLoading, data] = useFetch("http://localhost:3000/todo");
+  const [isLoading, data] = useFetch("http://localhost:3000/todo?_sort=order");
   // const [todo, setTodo] = useState([]);
   const [currentTodo, setCurrentTodo] = useState(null);
   const [time, setTime] = useState(0);
@@ -20,6 +20,8 @@ function App() {
   const [state, dispatch] = useReducer(todoReducer, []);
   const dragItem = useRef();
   const dragOverItem = useRef();
+  const [isDone, setIsDone] = useState(false);
+  const [isUndone, setIsUndone] = useState(false);
 
   // 드래그 앤 드랍 기능
   // 드래그 시작
@@ -40,8 +42,14 @@ function App() {
     newList.splice(dragOverItem.current, 0, dragItemValue);
     dragItem.current = null;
     dragOverItem.current = null;
-    // setTodoList(newList);
-    dispatch({ type: "GET_DATA", payload: newList });
+    const updatedItems = newList.map((el, idx) => ({ ...el, order: idx }));
+    dispatch({ type: "SORT_DATA", payload: updatedItems });
+    updatedItems.forEach((item) => {
+      fetch(`http://localhost:3000/todo/${item.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ order: item.order }),
+      });
+    });
   };
 
   useEffect(() => {
@@ -91,23 +99,24 @@ function App() {
       <div className="todofilter flex">
         <button
           onClick={() => {
-            dispatch({ type: "GET_DATA", payload: data });
-            dispatch({ type: "FILTER_DONE" });
+            setIsDone(true);
+            setIsUndone(false);
           }}
         >
           완료목록
         </button>
         <button
           onClick={() => {
-            dispatch({ type: "GET_DATA", payload: data });
-            dispatch({ type: "FILTER_UNDONE" });
+            setIsUndone(true);
+            setIsDone(false);
           }}
         >
           미완료목록
         </button>
         <button
           onClick={() => {
-            dispatch({ type: "GET_DATA", payload: data });
+            setIsUndone(false);
+            setIsDone(false);
           }}
         >
           All
@@ -120,6 +129,8 @@ function App() {
         currentTodo={currentTodo}
         setIsModal={setIsModal}
         setCurrentInput={setCurrentInput}
+        isDone={isDone}
+        isUndone={isUndone}
         dragStart={dragStart} // drag&drop props 전달
         dragEnter={dragEnter} // drag&drop props 전달
         drop={drop} // drag&drop props 전달
@@ -179,27 +190,79 @@ function TodoList({
   currentTodo,
   setIsModal,
   setCurrentInput,
+  isDone,
+  isUndone,
   dragStart,
   dragEnter,
   drop,
 }) {
   return (
     <ul className="todoList flex">
-      {state.map((el, idx) => (
-        <Todo
-          key={el.id}
-          state={el}
-          dispatch={dispatch}
-          setCurrentTodo={setCurrentTodo}
-          currentTodo={currentTodo}
-          setIsModal={setIsModal}
-          setCurrentInput={setCurrentInput}
-          dragStart={dragStart} // drag&drop props 전달
-          dragEnter={dragEnter} // drag&drop props 전달
-          drop={drop} // drag&drop props 전달
-          idx={idx}
-        />
-      ))}
+      {!isDone &&
+        !isUndone &&
+        state.map((el, idx) => (
+          <Todo
+            key={el.id}
+            state={el}
+            dispatch={dispatch}
+            setCurrentTodo={setCurrentTodo}
+            currentTodo={currentTodo}
+            setIsModal={setIsModal}
+            setCurrentInput={setCurrentInput}
+            isDone={isDone}
+            isUndone={isUndone}
+            dragStart={dragStart} // drag&drop props 전달
+            dragEnter={dragEnter} // drag&drop props 전달
+            drop={drop} // drag&drop props 전달
+            idx={idx}
+          />
+        ))}
+      {isDone &&
+        !isUndone &&
+        state.map((el, idx) =>
+          el.completed === true ? (
+            <Todo
+              key={el.id}
+              state={el}
+              dispatch={dispatch}
+              setCurrentTodo={setCurrentTodo}
+              currentTodo={currentTodo}
+              setIsModal={setIsModal}
+              setCurrentInput={setCurrentInput}
+              isDone={isDone}
+              isUndone={isUndone}
+              dragStart={dragStart} // drag&drop props 전달
+              dragEnter={dragEnter} // drag&drop props 전달
+              drop={drop} // drag&drop props 전달
+              idx={idx}
+            />
+          ) : (
+            ""
+          )
+        )}
+      {!isDone &&
+        isUndone &&
+        state.map((el, idx) =>
+          el.completed === false ? (
+            <Todo
+              key={el.id}
+              state={el}
+              dispatch={dispatch}
+              setCurrentTodo={setCurrentTodo}
+              currentTodo={currentTodo}
+              setIsModal={setIsModal}
+              setCurrentInput={setCurrentInput}
+              isDone={isDone}
+              isUndone={isUndone}
+              dragStart={dragStart} // drag&drop props 전달
+              dragEnter={dragEnter} // drag&drop props 전달
+              drop={drop} // drag&drop props 전달
+              idx={idx}
+            />
+          ) : (
+            ""
+          )
+        )}
     </ul>
   );
 }
@@ -237,18 +300,15 @@ function Todo({
           const newCheck = !listChecked;
           setListChecked(newCheck);
           const newTodo = { ...state, completed: newCheck };
-          // console.log(newTodo);
           fetch(`http://localhost:3000/todo/${state.id}`, {
             method: "PATCH",
             body: JSON.stringify(newTodo),
-          }).then((res) => {
-            if (res.ok) {
-              dispatch({
-                type: "TODO_COMPLETE",
-                payload: [state, newCheck],
-              });
-            }
           });
+          dispatch({
+            type: "TODO_COMPLETE",
+            payload: [state, newCheck],
+          });
+          console.log(newCheck);
         }}
       />
       <div>

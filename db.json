@@ -1,34 +1,32 @@
 {
   "todo": [
     {
-      "0": {
-        "id": "3a5c",
-        "content": "123142",
-        "time": 0,
-        "completed": false
-      },
-      "id": "3a5c",
-      "content": "1231423",
-      "time": 5,
-      "completed": false
+      "id": "7d1a",
+      "content": "1",
+      "time": 0,
+      "completed": false,
+      "order": 0
     },
     {
-      "id": "b720",
-      "content": "124124",
+      "id": "865e",
+      "content": "2",
       "time": 0,
-      "completed": false
+      "completed": true,
+      "order": 2
     },
     {
-      "id": "9051",
-      "content": "1244",
+      "id": "2701",
+      "content": "3",
       "time": 0,
-      "completed": false
+      "completed": true,
+      "order": 1
     },
     {
-      "id": "37af",
-      "content": "124124",
+      "id": "2a6e",
+      "content": "4",
       "time": 0,
-      "completed": false
+      "completed": true,
+      "order": 3
     }
   ]
 }

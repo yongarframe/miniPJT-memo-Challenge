@@ -23,11 +23,8 @@ export const todoReducer = (state, action) => {
           ? { ...el, completed: action.payload[1] }
           : el
       );
-    case "FILTER_DONE":
-      return [...state].filter((el) => el.completed === true);
-
-    case "FILTER_UNDONE":
-      return [...state].filter((el) => el.completed !== true);
+    case "SORT_DATA":
+      return [...action.payload.sort((a, b) => a.order - b.order)];
 
     default:
       return state;
