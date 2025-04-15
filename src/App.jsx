@@ -198,7 +198,30 @@ function TodoList({
 }) {
   return (
     <ul className="todoList flex">
-      {!isDone &&
+      {state
+        .filter((el) => {
+          if (!isDone && !isUndone) return true;
+          if (isDone && !isUndone) return el.completed === true;
+          if (!isDone && isUndone) return el.completed === false;
+        })
+        .map((el, idx) => (
+          <Todo
+            key={el.id}
+            state={el}
+            dispatch={dispatch}
+            setCurrentTodo={setCurrentTodo}
+            currentTodo={currentTodo}
+            setIsModal={setIsModal}
+            setCurrentInput={setCurrentInput}
+            isDone={isDone}
+            isUndone={isUndone}
+            dragStart={dragStart} // drag&drop props 전달
+            dragEnter={dragEnter} // drag&drop props 전달
+            drop={drop} // drag&drop props 전달
+            idx={idx}
+          />
+        ))}
+      {/* {!isDone &&
         !isUndone &&
         state.map((el, idx) => (
           <Todo
@@ -262,7 +285,7 @@ function TodoList({
           ) : (
             ""
           )
-        )}
+        )} */}
     </ul>
   );
 }
