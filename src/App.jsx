@@ -8,6 +8,7 @@ import { StopWatch } from "./StopWatch";
 import { Advice } from "./Advice";
 import { UpdateModal } from "./UpdateModal";
 import { todoReducer } from "./todoReducer";
+import BasicDatePicker from "./DatePicker";
 
 function App() {
   const [isLoading, data] = useFetch("http://localhost:3000/todo?_sort=order");
@@ -82,71 +83,74 @@ function App() {
   }, [isLoading]);
 
   return (
-    <div className="container flex">
-      <Clock />
-      <div className="timer flex">
-        <button onClick={() => setIsTimer((prev) => !prev)}>
-          {isTimer ? "스톱워치로변경" : "타이머로변경"}
-        </button>
-        {isTimer ? (
-          <Timer time={time} setTime={setTime} />
-        ) : (
-          <StopWatch time={time} setTime={setTime} />
+    <>
+      <BasicDatePicker />
+      <div className="container flex">
+        <Clock />
+        <div className="timer flex">
+          <button onClick={() => setIsTimer((prev) => !prev)}>
+            {isTimer ? "스톱워치로변경" : "타이머로변경"}
+          </button>
+          {isTimer ? (
+            <Timer time={time} setTime={setTime} />
+          ) : (
+            <StopWatch time={time} setTime={setTime} />
+          )}
+        </div>
+        <Advice />
+        <TodoInput state={state} dispatch={dispatch} />
+        <div className="todofilter flex">
+          <button
+            onClick={() => {
+              setIsDone(true);
+              setIsUndone(false);
+            }}
+          >
+            완료목록
+          </button>
+          <button
+            onClick={() => {
+              setIsUndone(true);
+              setIsDone(false);
+            }}
+          >
+            미완료목록
+          </button>
+          <button
+            onClick={() => {
+              setIsUndone(false);
+              setIsDone(false);
+            }}
+          >
+            All
+          </button>
+        </div>
+        <TodoList
+          state={state}
+          dispatch={dispatch}
+          setCurrentTodo={setCurrentTodo}
+          currentTodo={currentTodo}
+          setIsModal={setIsModal}
+          setCurrentInput={setCurrentInput}
+          isDone={isDone}
+          isUndone={isUndone}
+          dragStart={dragStart} // drag&drop props 전달
+          dragEnter={dragEnter} // drag&drop props 전달
+          drop={drop} // drag&drop props 전달
+        />
+        {isModal && (
+          <div className="blurContainer">
+            <UpdateModal
+              setIsModal={setIsModal}
+              currentInput={currentInput}
+              setCurrentInput={setCurrentInput}
+              state={state}
+              dispatch={dispatch}
+            />
+          </div>
         )}
       </div>
-      <Advice />
-      <TodoInput state={state} dispatch={dispatch} />
-      <div className="todofilter flex">
-        <button
-          onClick={() => {
-            setIsDone(true);
-            setIsUndone(false);
-          }}
-        >
-          완료목록
-        </button>
-        <button
-          onClick={() => {
-            setIsUndone(true);
-            setIsDone(false);
-          }}
-        >
-          미완료목록
-        </button>
-        <button
-          onClick={() => {
-            setIsUndone(false);
-            setIsDone(false);
-          }}
-        >
-          All
-        </button>
-      </div>
-      <TodoList
-        state={state}
-        dispatch={dispatch}
-        setCurrentTodo={setCurrentTodo}
-        currentTodo={currentTodo}
-        setIsModal={setIsModal}
-        setCurrentInput={setCurrentInput}
-        isDone={isDone}
-        isUndone={isUndone}
-        dragStart={dragStart} // drag&drop props 전달
-        dragEnter={dragEnter} // drag&drop props 전달
-        drop={drop} // drag&drop props 전달
-      />
-      {isModal && (
-        <div className="blurContainer">
-          <UpdateModal
-            setIsModal={setIsModal}
-            currentInput={currentInput}
-            setCurrentInput={setCurrentInput}
-            state={state}
-            dispatch={dispatch}
-          />
-        </div>
-      )}
-    </div>
+    </>
   );
 }
 
@@ -221,71 +225,6 @@ function TodoList({
             idx={idx}
           />
         ))}
-      {/* {!isDone &&
-        !isUndone &&
-        state.map((el, idx) => (
-          <Todo
-            key={el.id}
-            state={el}
-            dispatch={dispatch}
-            setCurrentTodo={setCurrentTodo}
-            currentTodo={currentTodo}
-            setIsModal={setIsModal}
-            setCurrentInput={setCurrentInput}
-            isDone={isDone}
-            isUndone={isUndone}
-            dragStart={dragStart} // drag&drop props 전달
-            dragEnter={dragEnter} // drag&drop props 전달
-            drop={drop} // drag&drop props 전달
-            idx={idx}
-          />
-        ))}
-      {isDone &&
-        !isUndone &&
-        state.map((el, idx) =>
-          el.completed === true ? (
-            <Todo
-              key={el.id}
-              state={el}
-              dispatch={dispatch}
-              setCurrentTodo={setCurrentTodo}
-              currentTodo={currentTodo}
-              setIsModal={setIsModal}
-              setCurrentInput={setCurrentInput}
-              isDone={isDone}
-              isUndone={isUndone}
-              dragStart={dragStart} // drag&drop props 전달
-              dragEnter={dragEnter} // drag&drop props 전달
-              drop={drop} // drag&drop props 전달
-              idx={idx}
-            />
-          ) : (
-            ""
-          )
-        )}
-      {!isDone &&
-        isUndone &&
-        state.map((el, idx) =>
-          el.completed === false ? (
-            <Todo
-              key={el.id}
-              state={el}
-              dispatch={dispatch}
-              setCurrentTodo={setCurrentTodo}
-              currentTodo={currentTodo}
-              setIsModal={setIsModal}
-              setCurrentInput={setCurrentInput}
-              isDone={isDone}
-              isUndone={isUndone}
-              dragStart={dragStart} // drag&drop props 전달
-              dragEnter={dragEnter} // drag&drop props 전달
-              drop={drop} // drag&drop props 전달
-              idx={idx}
-            />
-          ) : (
-            ""
-          )
-        )} */}
     </ul>
   );
 }
