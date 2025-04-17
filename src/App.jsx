@@ -85,7 +85,6 @@ function App() {
   return (
     <>
       <BasicDatePicker />
-      <div className="text-7xl">안녕하세요</div>
       <div className="container flex">
         <Clock />
         <div className="timer flex">
