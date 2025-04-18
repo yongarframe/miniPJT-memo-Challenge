@@ -1,10 +1,7 @@
-export function UpdateModal({
-  setIsModal,
-  currentInput,
-  setCurrentInput,
-  state,
-  dispatch,
-}) {
+import { useDragDrop } from "./Context/DragDropContext";
+
+export function UpdateModal({ setIsModal, currentInput, setCurrentInput }) {
+  const { state, dispatch } = useDragDrop();
   return (
     <div className="modal">
       <div>일정수정</div>
@@ -23,13 +20,6 @@ export function UpdateModal({
           }).then((res) => {
             if (res.ok) {
               dispatch({ type: "CORRECT_INPUT", payload: currentInput });
-              // setTodo(
-              //   todo.map((el) =>
-              //     el.id === currentInput[0]
-              //       ? { ...el, content: currentInput[1] }
-              //       : el
-              //   )
-              // );
             }
           });
         }}

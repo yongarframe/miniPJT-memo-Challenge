@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { Clock } from "./Clcok";
 import { useFetch } from "./customHook";
@@ -7,51 +7,19 @@ import { formatTime } from "./formatTime";
 import { StopWatch } from "./StopWatch";
 import { Advice } from "./Advice";
 import { UpdateModal } from "./UpdateModal";
-import { todoReducer } from "./todoReducer";
 import BasicDatePicker from "./DatePicker";
+import { useDragDrop } from "./Context/DragDropContext";
 
 function App() {
   const [isLoading, data] = useFetch("http://localhost:3000/todo?_sort=order");
-  // const [todo, setTodo] = useState([]);
   const [currentTodo, setCurrentTodo] = useState(null);
   const [time, setTime] = useState(0);
   const [isTimer, setIsTimer] = useState(false);
   const [isModal, setIsModal] = useState(false);
   const [currentInput, setCurrentInput] = useState("");
-  const [state, dispatch] = useReducer(todoReducer, []);
-  const dragItem = useRef();
-  const dragOverItem = useRef();
   const [isDone, setIsDone] = useState(false);
   const [isUndone, setIsUndone] = useState(false);
-
-  // 드래그 앤 드랍 기능
-  // 드래그 시작
-  const dragStart = (e, position) => {
-    dragItem.current = position;
-  };
-
-  //드래그 오버
-  const dragEnter = (e, position) => {
-    dragOverItem.current = position;
-  };
-
-  //드래그 드랍시
-  const drop = () => {
-    const newList = [...state];
-    const dragItemValue = newList[dragItem.current];
-    newList.splice(dragItem.current, 1);
-    newList.splice(dragOverItem.current, 0, dragItemValue);
-    dragItem.current = null;
-    dragOverItem.current = null;
-    const updatedItems = newList.map((el, idx) => ({ ...el, order: idx }));
-    dispatch({ type: "SORT_DATA", payload: updatedItems });
-    updatedItems.forEach((item) => {
-      fetch(`http://localhost:3000/todo/${item.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ order: item.order }),
-      });
-    });
-  };
+  const { state, dispatch } = useDragDrop();
 
   useEffect(() => {
     if (currentTodo) {
@@ -62,14 +30,10 @@ function App() {
         }),
       })
         .then((res) => res.json())
-        .then(
-          (res) => dispatch({ type: "TIME_STAMP", payload: [res, currentTodo] })
-          // setTodo((prev) =>
-          //   prev.map((el) => (el.id === currentTodo ? res : el))
-          // )
-        ); //
+        .then((res) =>
+          dispatch({ type: "TIME_STAMP", payload: [res, currentTodo] })
+        );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [time]);
 
   useEffect(() => {
@@ -78,8 +42,6 @@ function App() {
 
   useEffect(() => {
     if (data) dispatch({ type: "GET_DATA", payload: data });
-    //setTodo(data);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
 
   return (
@@ -98,7 +60,7 @@ function App() {
           )}
         </div>
         <Advice />
-        <TodoInput state={state} dispatch={dispatch} />
+        <TodoInput />
         <div className="todofilter flex">
           <button
             onClick={() => {
@@ -134,9 +96,6 @@ function App() {
           setCurrentInput={setCurrentInput}
           isDone={isDone}
           isUndone={isUndone}
-          dragStart={dragStart} // drag&drop props 전달
-          dragEnter={dragEnter} // drag&drop props 전달
-          drop={drop} // drag&drop props 전달
         />
         {isModal && (
           <div className="blurContainer">
@@ -144,8 +103,6 @@ function App() {
               setIsModal={setIsModal}
               currentInput={currentInput}
               setCurrentInput={setCurrentInput}
-              state={state}
-              dispatch={dispatch}
             />
           </div>
         )}
@@ -156,11 +113,11 @@ function App() {
 
 export default App;
 
-function TodoInput({ dispatch }) {
+function TodoInput() {
+  const { dispatch } = useDragDrop();
   const inputRef = useRef(null);
   const addTodo = () => {
     const newTodo = {
-      // id: Number(new Date()).toString(),
       content: inputRef.current.value,
       time: 0,
       completed: false,
@@ -171,7 +128,6 @@ function TodoInput({ dispatch }) {
     })
       .then((res) => res.json())
       .then((res) => dispatch({ type: "ADD_TODO", payload: res }))
-      // .then((res) => setTodo((prev) => [...prev, res]))
       .then(() => (inputRef.current.value = ""));
   };
 
@@ -188,18 +144,14 @@ function TodoInput({ dispatch }) {
 }
 
 function TodoList({
-  state,
-  dispatch,
   setCurrentTodo,
   currentTodo,
   setIsModal,
   setCurrentInput,
   isDone,
   isUndone,
-  dragStart,
-  dragEnter,
-  drop,
 }) {
+  const { state } = useDragDrop();
   return (
     <ul className="todoList flex">
       {state
@@ -211,17 +163,13 @@ function TodoList({
         .map((el, idx) => (
           <Todo
             key={el.id}
-            state={el}
-            dispatch={dispatch}
+            todoList={el}
             setCurrentTodo={setCurrentTodo}
             currentTodo={currentTodo}
             setIsModal={setIsModal}
             setCurrentInput={setCurrentInput}
             isDone={isDone}
             isUndone={isUndone}
-            dragStart={dragStart} // drag&drop props 전달
-            dragEnter={dragEnter} // drag&drop props 전달
-            drop={drop} // drag&drop props 전달
             idx={idx}
           />
         ))}
@@ -230,24 +178,20 @@ function TodoList({
 }
 
 function Todo({
-  state,
-  dispatch,
+  todoList,
   setCurrentTodo,
   currentTodo,
   setIsModal,
   setCurrentInput,
-  dragStart,
-  dragEnter,
-  drop,
   idx,
 }) {
-  // console.log(typeof state.id);
-  const [listChecked, setListChecked] = useState(state.completed);
+  const [listChecked, setListChecked] = useState(todoList.completed);
+  const { dragStart, dragEnter, drop, dispatch } = useDragDrop();
 
   return (
     <li
-      className={`flex todo ${currentTodo === state.id ? "current" : ""} ${
-        state.completed ? "done" : ""
+      className={`flex todo ${currentTodo === todoList.id ? "current" : ""} ${
+        todoList.completed ? "done" : ""
       }`}
       draggable
       onDragStart={(e) => dragStart(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
@@ -261,28 +205,28 @@ function Todo({
         onChange={() => {
           const newCheck = !listChecked;
           setListChecked(newCheck);
-          const newTodo = { ...state, completed: newCheck };
-          fetch(`http://localhost:3000/todo/${state.id}`, {
+          const newTodo = { ...todoList, completed: newCheck };
+          fetch(`http://localhost:3000/todo/${todoList.id}`, {
             method: "PATCH",
             body: JSON.stringify(newTodo),
           });
           dispatch({
             type: "TODO_COMPLETE",
-            payload: [state, newCheck],
+            payload: [todoList, newCheck],
           });
           console.log(newCheck);
         }}
       />
       <div>
-        {state.content}
+        {todoList.content}
         <br />
-        {formatTime(state.time)}
+        {formatTime(todoList.time)}
       </div>
-      <button onClick={() => setCurrentTodo(state.id)}>시작하기</button>
+      <button onClick={() => setCurrentTodo(todoList.id)}>시작하기</button>
       <button
         onClick={() => {
           setIsModal((prev) => !prev);
-          setCurrentInput([state.id, state.content]);
+          setCurrentInput([todoList.id, todoList.content]);
         }}
       >
         수정
@@ -290,13 +234,11 @@ function Todo({
       <button
         className=""
         onClick={() => {
-          fetch(`http://localhost:3000/todo/${state.id}`, {
+          fetch(`http://localhost:3000/todo/${todoList.id}`, {
             method: "DELETE",
           }).then((res) => {
             if (res.ok) {
-              // console.log(res);
-              // setTodo((prev) => prev.filter((el) => el.id !== state.id));
-              dispatch({ type: "DELETE_TODO", payload: state });
+              dispatch({ type: "DELETE_TODO", payload: todoList });
             }
           });
         }}
