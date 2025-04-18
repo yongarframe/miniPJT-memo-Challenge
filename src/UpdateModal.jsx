@@ -3,13 +3,18 @@ import { useDragDrop } from "./Context/DragDropContext";
 export function UpdateModal({ setIsModal, currentInput, setCurrentInput }) {
   const { state, dispatch } = useDragDrop();
   return (
-    <div className="modal">
+    <div
+      className="bg-stone-100 flex w-90 h-90 flex-col items-center gap-[10px] p-[10px] rounded-xl shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div>일정수정</div>
       <input
+        className="w-80 h-100 p-[15px] rounded-2xl inset-shadow-sm/60"
         value={currentInput[1]}
         onChange={(e) => setCurrentInput([currentInput[0], e.target.value])}
       ></input>
       <button
+        className="bg-violet-400 w-80"
         onClick={() => {
           setIsModal((prev) => !prev);
           const currentTodo = state.filter((el) => el.id === currentInput[0]);

@@ -98,7 +98,10 @@ function App() {
           isUndone={isUndone}
         />
         {isModal && (
-          <div className="blurContainer">
+          <div
+            className="position: absolute w-full h-full backdrop-blur-xs flex justify-center items-center"
+            onClick={() => setIsModal(!isModal)}
+          >
             <UpdateModal
               setIsModal={setIsModal}
               currentInput={currentInput}
