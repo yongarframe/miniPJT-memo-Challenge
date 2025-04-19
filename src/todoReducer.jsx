@@ -26,6 +26,11 @@ export const todoReducer = (state, action) => {
     case "SORT_DATA":
       return [...action.payload.sort((a, b) => a.order - b.order)];
 
+    case "ADD_DATE":
+      return state.map((el) =>
+        el.id === action.payload.id ? { ...el, ...action.payload } : el
+      );
+
     default:
       return state;
   }

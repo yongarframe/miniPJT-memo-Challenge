@@ -37,16 +37,6 @@ li {
   gap: 20px;
 }
 
-.todo {
-  gap: 20px;
-  background-color: rgb(213, 134, 134);
-  align-items: center;
-  border-radius: 10px;
-  width: 300px;
-  justify-content: right;
-  padding-right: 10px;
-}
-
 .todoList {
   flex-direction: column;
   gap: 20px;

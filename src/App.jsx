@@ -9,6 +9,7 @@ import { Advice } from "./Advice";
 import { UpdateModal } from "./UpdateModal";
 import BasicDatePicker from "./DatePicker";
 import { useDragDrop } from "./Context/DragDropContext";
+import { twMerge } from "tailwind-merge";
 
 function App() {
   const [isLoading, data] = useFetch("http://localhost:3000/todo?_sort=order");
@@ -46,7 +47,6 @@ function App() {
 
   return (
     <>
-      <BasicDatePicker />
       <div className="container flex">
         <Clock />
         <div className="timer flex">
@@ -99,7 +99,7 @@ function App() {
         />
         {isModal && (
           <div
-            className="position: absolute w-full h-full backdrop-blur-xs flex justify-center items-center"
+            className="position: absolute w-full h-full backdrop-blur-xs flex "
             onClick={() => setIsModal(!isModal)}
           >
             <UpdateModal
@@ -193,15 +193,28 @@ function Todo({
 
   return (
     <li
-      className={`flex todo ${currentTodo === todoList.id ? "current" : ""} ${
-        todoList.completed ? "done" : ""
-      }`}
+      className={twMerge(
+        "flex",
+        "bg-[rgb(213,134,134)]",
+        "items-center",
+        "justify-center",
+        "w-[500px]",
+        "gap-[20px]",
+        "pr-[10px]",
+        "rounded-xl",
+        currentTodo === todoList.id &&
+          "bg-[yellowgreen] text-[black] ease-linear duration-700 ",
+        todoList.completed && "line-through"
+      )}
       draggable
       onDragStart={(e) => dragStart(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
       onDragEnter={(e) => dragEnter(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
       onDragEnd={drop} // drag&drop props 이벤트 App 컴포넌트에서 실행
       onDragOver={(e) => e.preventDefault()} // drag&drop props 이벤트 App 컴포넌트에서 실행
     >
+      <div className="w-40 h-10">
+        <BasicDatePicker todoList={todoList} />
+      </div>
       <input
         type="checkbox"
         checked={listChecked}

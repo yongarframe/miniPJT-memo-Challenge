@@ -4,7 +4,7 @@ export function UpdateModal({ setIsModal, currentInput, setCurrentInput }) {
   const { state, dispatch } = useDragDrop();
   return (
     <div
-      className="bg-stone-100 flex w-90 h-90 flex-col items-center gap-[10px] p-[10px] rounded-xl shadow-2xl"
+      className="bg-stone-100 flex w-90 h-90 flex-col items-center gap-[10px] absolute p-[10px] rounded-xl shadow-2xl top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]"
       onClick={(e) => e.stopPropagation()}
     >
       <div>일정수정</div>
