@@ -20,12 +20,21 @@ export function StopWatch({ time, setTime }) {
 
   return (
     <>
-      {formatTime(time)}
-      <button className="" onClick={() => setIsOn((prev) => !prev)}>
+      <div className="text-3xl font-mono text-gray-800 mb-4">
+        {formatTime(time)}
+      </div>
+      <button
+        className={`rounded-full py-2 px-4 ${
+          isOn
+            ? "bg-gray-200 text-gray-600 hover:bg-gray-300"
+            : "bg-teal-500 text-white hover:bg-teal-600"
+        }`}
+        onClick={() => setIsOn((prev) => !prev)}
+      >
         {isOn ? "끄기" : "켜기"}
       </button>
       <button
-        className=""
+        className="bg-amber-100 text-amber-700 rounded-full py-2 px-4 hover:bg-amber-200"
         onClick={() => {
           setTime(0);
           setIsOn(false);

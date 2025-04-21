@@ -9,5 +9,9 @@ export function Clock() {
     }, 1000);
   }, []);
 
-  return <div>{time.toLocaleTimeString()}</div>;
+  return (
+    <div className="text-gray-800 font-mono text-xl font-semibold">
+      {time.toLocaleTimeString()}
+    </div>
+  );
 }

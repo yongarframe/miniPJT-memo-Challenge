@@ -10,6 +10,7 @@ import { UpdateModal } from "./UpdateModal";
 import BasicDatePicker from "./DatePicker";
 import { useDragDrop } from "./Context/DragDropContext";
 import { twMerge } from "tailwind-merge";
+import dayjs from "dayjs";
 
 function App() {
   const [isLoading, data] = useFetch("http://localhost:3000/todo?_sort=order");
@@ -47,10 +48,13 @@ function App() {
 
   return (
     <>
-      <div className="container flex">
+      <div className="flex-col flex items-center gap-[20px] p-[10px] ">
         <Clock />
-        <div className="timer flex">
-          <button onClick={() => setIsTimer((prev) => !prev)}>
+        <div className="flex gap-[10px] rounded-md p-4 bg-f0fdf4">
+          <button
+            className="bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-full py-2 px-4 text-sm flex items-center"
+            onClick={() => setIsTimer((prev) => !prev)}
+          >
             {isTimer ? "스톱워치로변경" : "타이머로변경"}
           </button>
           {isTimer ? (
@@ -61,8 +65,9 @@ function App() {
         </div>
         <Advice />
         <TodoInput />
-        <div className="todofilter flex">
+        <div className="todofilter flex gap-[10px]">
           <button
+            className="w-30"
             onClick={() => {
               setIsDone(true);
               setIsUndone(false);
@@ -71,6 +76,7 @@ function App() {
             완료목록
           </button>
           <button
+            className="w-30"
             onClick={() => {
               setIsUndone(true);
               setIsDone(false);
@@ -79,6 +85,7 @@ function App() {
             미완료목록
           </button>
           <button
+            className="w-30"
             onClick={() => {
               setIsUndone(false);
               setIsDone(false);
@@ -136,9 +143,16 @@ function TodoInput() {
 
   return (
     <>
-      <div className="">
-        <input className="" ref={inputRef} />
-        <button className="" onClick={addTodo}>
+      <div className="flex gap-2 items-center py-3 px-4 bg-f0fdf4 rounded-md">
+        <input
+          placeholder="새로운 할 일을 입력하세요..."
+          className="bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-800 focus:border-teal-500 flex-grow"
+          ref={inputRef}
+        />
+        <button
+          className="bg-teal-500 flex items-center text-white font-semibold rounded-md py-2 px-4 ml-2 hover:bg-teal-600"
+          onClick={addTodo}
+        >
           추가
         </button>
       </div>
@@ -194,14 +208,7 @@ function Todo({
   return (
     <li
       className={twMerge(
-        "flex",
-        "bg-[rgb(213,134,134)]",
-        "items-center",
-        "justify-center",
-        "w-[500px]",
-        "gap-[20px]",
-        "pr-[10px]",
-        "rounded-xl",
+        "border-b-[2px] border-[#4db6ac] flex bg-[#ffffff] items-center justify-center w-[500px] gap-[10px] pr-[10px] rounded-xl",
         currentTodo === todoList.id &&
           "bg-[yellowgreen] text-[black] ease-linear duration-700 ",
         todoList.completed && "line-through"
@@ -212,11 +219,15 @@ function Todo({
       onDragEnd={drop} // drag&drop props 이벤트 App 컴포넌트에서 실행
       onDragOver={(e) => e.preventDefault()} // drag&drop props 이벤트 App 컴포넌트에서 실행
     >
-      <div className="w-40 h-10">
+      <div className="w-10 h-10">
         <BasicDatePicker todoList={todoList} />
       </div>
+      <div className="text-[12px]">{`기한 : ${dayjs(todoList.date).format(
+        "YY-MM-DD"
+      )}`}</div>
       <input
         type="checkbox"
+        className="form-checkbox h-5 w-5 text-teal-500 focus:ring-teal-500 rounded border-gray-300"
         checked={listChecked}
         onChange={() => {
           const newCheck = !listChecked;
@@ -230,7 +241,6 @@ function Todo({
             type: "TODO_COMPLETE",
             payload: [todoList, newCheck],
           });
-          console.log(newCheck);
         }}
       />
       <div>
@@ -238,8 +248,14 @@ function Todo({
         <br />
         {formatTime(todoList.time)}
       </div>
-      <button onClick={() => setCurrentTodo(todoList.id)}>시작하기</button>
       <button
+        className="w-15 text-[12px]"
+        onClick={() => setCurrentTodo(todoList.id)}
+      >
+        시작하기
+      </button>
+      <button
+        className="w-15 text-[12px]"
         onClick={() => {
           setIsModal((prev) => !prev);
           setCurrentInput([todoList.id, todoList.content]);
@@ -248,7 +264,7 @@ function Todo({
         수정
       </button>
       <button
-        className=""
+        className="w-15 text-[12px]"
         onClick={() => {
           fetch(`http://localhost:3000/todo/${todoList.id}`, {
             method: "DELETE",
