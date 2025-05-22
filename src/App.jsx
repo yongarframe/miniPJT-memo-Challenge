@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import React, { memo, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
-import { Clock } from "./Clcok";
+import { Clock } from "./Clock";
 import { useFetch } from "./customHook";
 import { Timer } from "./Timer";
 import { formatTime } from "./formatTime";
@@ -13,7 +13,7 @@ import { twMerge } from "tailwind-merge";
 import dayjs from "dayjs";
 
 function App() {
-  const [isLoading, data] = useFetch("http://localhost:3000/todo?_sort=order");
+  const [isLoading, data] = useFetch("http://localhost:3000/todo");
   const [currentTodo, setCurrentTodo] = useState(null);
   const [time, setTime] = useState(0);
   const [isTimer, setIsTimer] = useState(false);
@@ -22,6 +22,8 @@ function App() {
   const [isDone, setIsDone] = useState(false);
   const [isUndone, setIsUndone] = useState(false);
   const { state, dispatch } = useDragDrop();
+
+  console.log(state);
 
   useEffect(() => {
     if (currentTodo) {
@@ -160,123 +162,130 @@ function TodoInput() {
   );
 }
 
-function TodoList({
-  setCurrentTodo,
-  currentTodo,
-  setIsModal,
-  setCurrentInput,
-  isDone,
-  isUndone,
-}) {
-  const { state } = useDragDrop();
-  return (
-    <ul className="todoList flex">
-      {state
-        .filter((el) => {
-          if (!isDone && !isUndone) return true;
-          if (isDone && !isUndone) return el.completed === true;
-          if (!isDone && isUndone) return el.completed === false;
-        })
-        .map((el, idx) => (
-          <Todo
-            key={el.id}
-            todoList={el}
-            setCurrentTodo={setCurrentTodo}
-            currentTodo={currentTodo}
-            setIsModal={setIsModal}
-            setCurrentInput={setCurrentInput}
-            isDone={isDone}
-            isUndone={isUndone}
-            idx={idx}
-          />
-        ))}
-    </ul>
-  );
-}
+const TodoList = memo(
+  ({
+    setCurrentTodo,
+    currentTodo,
+    setIsModal,
+    setCurrentInput,
+    isDone,
+    isUndone,
+  }) => {
+    const { state } = useDragDrop();
 
-function Todo({
-  todoList,
-  setCurrentTodo,
-  currentTodo,
-  setIsModal,
-  setCurrentInput,
-  idx,
-}) {
-  const [listChecked, setListChecked] = useState(todoList.completed);
-  const { dragStart, dragEnter, drop, dispatch } = useDragDrop();
+    return (
+      <ul className="todoList flex">
+        {state
+          .filter((el) => {
+            if (!isDone && !isUndone) return true;
+            if (isDone && !isUndone) return el.completed === true;
+            if (!isDone && isUndone) return el.completed === false;
+          })
+          .map((el, idx) => (
+            <Todo
+              key={el.id}
+              todoList={el}
+              setCurrentTodo={setCurrentTodo}
+              currentTodo={currentTodo}
+              setIsModal={setIsModal}
+              setCurrentInput={setCurrentInput}
+              isDone={isDone}
+              isUndone={isUndone}
+              idx={idx}
+            />
+          ))}
+      </ul>
+    );
+  }
+);
 
-  return (
-    <li
-      className={twMerge(
-        "border-b-[2px] border-[#4db6ac] flex bg-[#ffffff] items-center justify-center w-[500px] gap-[10px] pr-[10px] rounded-xl",
-        currentTodo === todoList.id &&
-          "bg-[yellowgreen] text-[black] ease-linear duration-700 ",
-        todoList.completed && "line-through"
-      )}
-      draggable
-      onDragStart={(e) => dragStart(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
-      onDragEnter={(e) => dragEnter(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
-      onDragEnd={drop} // drag&drop props 이벤트 App 컴포넌트에서 실행
-      onDragOver={(e) => e.preventDefault()} // drag&drop props 이벤트 App 컴포넌트에서 실행
-    >
-      <div className="w-10 h-10">
-        <BasicDatePicker todoList={todoList} />
-      </div>
-      <div className="text-[12px]">{`기한 : ${dayjs(todoList.date).format(
-        "YY-MM-DD"
-      )}`}</div>
-      <input
-        type="checkbox"
-        className="form-checkbox h-5 w-5 text-teal-500 focus:ring-teal-500 rounded border-gray-300"
-        checked={listChecked}
-        onChange={() => {
-          const newCheck = !listChecked;
-          setListChecked(newCheck);
-          const newTodo = { ...todoList, completed: newCheck };
-          fetch(`http://localhost:3000/todo/${todoList.id}`, {
-            method: "PATCH",
-            body: JSON.stringify(newTodo),
-          });
-          dispatch({
-            type: "TODO_COMPLETE",
-            payload: [todoList, newCheck],
-          });
-        }}
-      />
-      <div>
-        {todoList.content}
-        <br />
-        {formatTime(todoList.time)}
-      </div>
-      <button
-        className="w-15 text-[12px]"
-        onClick={() => setCurrentTodo(todoList.id)}
+const Todo = memo(
+  ({
+    todoList,
+    setCurrentTodo,
+    currentTodo,
+    setIsModal,
+    setCurrentInput,
+    idx,
+  }) => {
+    const [listChecked, setListChecked] = useState(todoList.completed);
+    const { dragStart, dragEnter, drop, dispatch } = useDragDrop();
+
+    console.log(todoList);
+    return (
+      <li
+        className={twMerge(
+          "border-b-[2px] border-[#4db6ac] flex bg-[#ffffff] items-center justify-center w-[500px] gap-[10px] pr-[10px] rounded-xl",
+          currentTodo === todoList.id &&
+            "bg-[yellowgreen] text-[black] ease-linear duration-700 ",
+          todoList.completed && "line-through"
+        )}
+        draggable
+        onDragStart={(e) => dragStart(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
+        onDragEnter={(e) => dragEnter(e, idx)} // drag&drop props 이벤트 App 컴포넌트에서 실행
+        onDragEnd={drop} // drag&drop props 이벤트 App 컴포넌트에서 실행
+        onDragOver={(e) => e.preventDefault()} // drag&drop props 이벤트 App 컴포넌트에서 실행
       >
-        시작하기
-      </button>
-      <button
-        className="w-15 text-[12px]"
-        onClick={() => {
-          setIsModal((prev) => !prev);
-          setCurrentInput([todoList.id, todoList.content]);
-        }}
-      >
-        수정
-      </button>
-      <button
-        className="w-15 text-[12px]"
-        onClick={() => {
-          fetch(`http://localhost:3000/todo/${todoList.id}`, {
-            method: "DELETE",
-          }).then((res) => {
-            if (res.ok) {
-              dispatch({ type: "DELETE_TODO", payload: todoList });
-            }
-          });
-        }}
-      >
-        삭제
-      </button>
-    </li>
-  );
-}
+        <div className="w-10 h-10">
+          <BasicDatePicker todoList={todoList} />
+        </div>
+        <div className="text-[12px]">{`기한 : ${dayjs(todoList.date).format(
+          "YY-MM-DD"
+        )}`}</div>
+        <input
+          type="checkbox"
+          className="form-checkbox h-5 w-5 text-teal-500 focus:ring-teal-500 rounded border-gray-300"
+          checked={listChecked}
+          onChange={() => {
+            const newCheck = !listChecked;
+            setListChecked(newCheck);
+            const newTodo = { ...todoList, completed: newCheck };
+            fetch(`http://localhost:3000/todo/${todoList.id}`, {
+              method: "PATCH",
+              body: JSON.stringify(newTodo),
+            });
+            dispatch({
+              type: "TODO_COMPLETE",
+              payload: [todoList, newCheck],
+            });
+          }}
+        />
+        <div>
+          {todoList.content}
+          <br />
+          {formatTime(todoList.time)}
+        </div>
+        <button
+          className="w-15 text-[12px]"
+          onClick={() => setCurrentTodo(todoList.id)}
+        >
+          시작하기
+        </button>
+        <button
+          className="w-15 text-[12px]"
+          onClick={() => {
+            setIsModal((prev) => !prev);
+            setCurrentInput([todoList.id, todoList.content]);
+          }}
+        >
+          수정
+        </button>
+        <button
+          className="w-15 text-[12px]"
+          onClick={() => {
+            fetch(`http://localhost:3000`, {
+              method: "DELETE",
+              body: todoList.id,
+            }).then((res) => {
+              if (res.ok) {
+                dispatch({ type: "DELETE_TODO", payload: todoList });
+              }
+            });
+          }}
+        >
+          삭제
+        </button>
+      </li>
+    );
+  }
+);

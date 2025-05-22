@@ -14,9 +14,13 @@ export const todoReducer = (state, action) => {
       return state.filter((el) => el.id !== action.payload.id);
 
     case "CORRECT_INPUT":
-      return state.map((el) =>
-        el.id === action.payload[0] ? { ...el, content: action.payload[1] } : el
-      );
+      return state.map((el) => {
+        console.log(action.payload.content);
+        console.log(el.id === action.payload.id);
+        return el.id === action.payload.id
+          ? { ...el, content: action.payload.content }
+          : el;
+      });
     case "TODO_COMPLETE":
       return state.map((el) =>
         el.id === action.payload[0].id

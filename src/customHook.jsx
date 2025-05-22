@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useDragDrop } from "./Context/DragDropContext";
 
 export function useFetch(url) {
   const [isLoading, setIsLoading] = useState(true);
@@ -8,6 +9,7 @@ export function useFetch(url) {
     fetch(url)
       .then((res) => res.json())
       .then((res) => {
+        console.log(res);
         setData(res);
         setIsLoading(false);
       });

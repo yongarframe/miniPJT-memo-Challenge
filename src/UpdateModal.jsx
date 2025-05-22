@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useDragDrop } from "./Context/DragDropContext";
 
 export function UpdateModal({ setIsModal, currentInput, setCurrentInput }) {
@@ -11,22 +12,27 @@ export function UpdateModal({ setIsModal, currentInput, setCurrentInput }) {
       <input
         className="w-80 h-100 p-[15px] rounded-2xl inset-shadow-sm/60"
         value={currentInput[1]}
-        onChange={(e) => setCurrentInput([currentInput[0], e.target.value])}
+        onChange={(e) => setCurrentInput([currentInput[0], e.target.value])} //currentInput 은 todo 컴포넌트 현재 값 [0]은 id / 1은 내용
       ></input>
       <button
         className="bg-violet-400 w-80"
         onClick={() => {
           setIsModal((prev) => !prev);
-          const currentTodo = state.filter((el) => el.id === currentInput[0]);
+          const currentTodo = state.find((el) => el.id === currentInput[0]);
           const newTodo = { ...currentTodo, content: currentInput[1] };
-          fetch(`http://localhost:3000/todo/${currentInput[0]}`, {
-            method: "PATCH",
-            body: JSON.stringify(newTodo),
-          }).then((res) => {
-            if (res.ok) {
-              dispatch({ type: "CORRECT_INPUT", payload: currentInput });
-            }
-          });
+          axios
+            .patch(`http://localhost:3000/todo/${currentInput[0]}`, {
+              content: newTodo.content,
+            })
+            // fetch(`http://localhost:3000/todo/${currentInput[0]}`, {
+            //   method: "PATCH",
+            //   body: JSON.stringify(newTodo.content),
+            // })
+            .then((res) => {
+              // console.log(!!res);
+
+              dispatch({ type: "CORRECT_INPUT", payload: newTodo });
+            });
         }}
       >
         저장하기
